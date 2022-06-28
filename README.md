@@ -1,4 +1,4 @@
-# presentation-helper
+# Guidelines
 Presentation helper using Computer Vision
 list of package
   - mediapipe (automatically install opencv, pandas)
