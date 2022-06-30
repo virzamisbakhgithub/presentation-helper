@@ -1,6 +1,7 @@
 import os
 import cv2
 from cvzone.HandTrackingModule import HandDetector
+import numpy as np
 
 
 
@@ -25,6 +26,8 @@ gestureThreshold = 200
 buttonCounter = 0
 buttonPressed = False
 buttonDelay = 5                 #depend on how fast webcam read the frame
+annotation = [[]]
+annotationNumber = -1
 
 #Hand detector
 detector = HandDetector(detectionCon=0.8, maxHands=1)
@@ -45,7 +48,11 @@ while True:
         fingers = detector.fingersUp(hand)
         cx, cy = hand['center']
         lmList = hand['lmList']
-        indexFingers = lmList[8][0], lmList[8][1]
+
+        #Constrain value space
+        xVal = int(np.interp(lmList[8][0], [width // 3, width // 2.1], [0, width]))
+        yVal = int(np.interp(lmList[8][1], [100, height // 2], [0, height]))
+        indexFingers = xVal, yVal
 
         #Gesture #1 - Left
         if cy <= gestureThreshold:
@@ -62,10 +69,14 @@ while True:
                     buttonPressed = True
                     imgNumber += 1
         
-        #Gesture #3 - Drawer
+        #Gesture #3 - Pointer
         if fingers == [0,1,1,0,0]:
             cv2.circle(imgCurrent, indexFingers, 12, (0,0,255), cv2.FILLED)
-        
+
+        #Gesture #4 - Drawer
+        if fingers == [0,1,0,0,0]:
+            cv2.circle(imgCurrent, indexFingers, 12, (0,0,255), cv2.FILLED)
+            annotation.append(indexFingers)
 
     #Button press iteration
     if buttonPressed:
@@ -74,7 +85,9 @@ while True:
             buttonCounter = 0
             buttonPressed = False
 
-
+    for i in range (len(annotation)):
+        if i != 0:
+            cv2.line(imgCurrent, annotation[i-1], annotation[i], (0, 0, 200), 12)
 
     #Adding webcam to images
     imgSmall = cv2.resize(img, (ws, hs))
