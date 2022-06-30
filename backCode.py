@@ -28,6 +28,7 @@ buttonPressed = False
 buttonDelay = 5                 #depend on how fast webcam read the frame
 annotation = [[]]
 annotationNumber = -1
+annotationStart = False
 
 #Hand detector
 detector = HandDetector(detectionCon=0.8, maxHands=1)
@@ -60,6 +61,9 @@ while True:
                 print("left")
                 if imgNumber > 0:
                     buttonPressed = True
+                    annotation = [[]]
+                    annotationNumber = -1
+                    annotationStart = False
                     imgNumber -= 1
 
         #Gesture #2 - Right
@@ -67,16 +71,27 @@ while True:
                 print("right")
                 if imgNumber < len(pathImages) - 1:
                     buttonPressed = True
+                    annotation = [[]]
+                    annotationNumber = -1
+                    annotationStart = False
                     imgNumber += 1
         
         #Gesture #3 - Pointer
         if fingers == [0,1,1,0,0]:
-            cv2.circle(imgCurrent, indexFingers, 12, (0,0,255), cv2.FILLED)
+            cv2.circle(imgCurrent, indexFingers, 5, (0,0,255), cv2.FILLED)
 
         #Gesture #4 - Drawer
         if fingers == [0,1,0,0,0]:
-            cv2.circle(imgCurrent, indexFingers, 12, (0,0,255), cv2.FILLED)
-            annotation.append(indexFingers)
+            if annotationStart is False:
+                annotationStart = True
+                annotationNumber += 1
+                annotation.append([])
+
+            cv2.circle(imgCurrent, indexFingers, 5, (0,0,255), cv2.FILLED)
+            annotation[annotationNumber].append(indexFingers)
+
+        else:
+            annotationStart = False
 
     #Button press iteration
     if buttonPressed:
@@ -86,14 +101,14 @@ while True:
             buttonPressed = False
 
     for i in range (len(annotation)):
-        if i != 0:
-            cv2.line(imgCurrent, annotation[i-1], annotation[i], (0, 0, 200), 12)
+        for j in range (len(annotation[i])):
+            if j != 0:
+                cv2.line(imgCurrent, annotation[i][j-1], annotation[i][j], (0, 0, 200), 5)
 
     #Adding webcam to images
     imgSmall = cv2.resize(img, (ws, hs))
     h, w, _ = imgCurrent.shape
     imgCurrent[0:hs, w - ws:w] = imgSmall
-
 
 
     cv2.imshow("image", img)
