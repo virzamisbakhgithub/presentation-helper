@@ -27,7 +27,7 @@ buttonCounter = 0
 buttonPressed = False
 buttonDelay = 5                 #depend on how fast webcam read the frame
 annotation = [[]]
-annotationNumber = -1
+annotationNumber = 0
 annotationStart = False
 
 #Hand detector
@@ -48,7 +48,7 @@ while True:
         hand = hands[0]
         fingers = detector.fingersUp(hand)
         cx, cy = hand['center']
-        lmList = hand['lmList']
+        lmList = hand['lmList']             #lmList = landmark list
 
         #Constrain value space
         xVal = int(np.interp(lmList[8][0], [width // 3, width // 2.1], [0, width]))
@@ -62,7 +62,7 @@ while True:
                 if imgNumber > 0:
                     buttonPressed = True
                     annotation = [[]]
-                    annotationNumber = -1
+                    annotationNumber = 0
                     annotationStart = False
                     imgNumber -= 1
 
@@ -72,26 +72,32 @@ while True:
                 if imgNumber < len(pathImages) - 1:
                     buttonPressed = True
                     annotation = [[]]
-                    annotationNumber = -1
+                    annotationNumber = 0
                     annotationStart = False
                     imgNumber += 1
         
-        #Gesture #3 - Pointer
+        #Gesture #3 - Show pointer
         if fingers == [0,1,1,0,0]:
             cv2.circle(imgCurrent, indexFingers, 5, (0,0,255), cv2.FILLED)
 
-        #Gesture #4 - Drawer
+        #Gesture #4 - Draw Pointer
         if fingers == [0,1,0,0,0]:
             if annotationStart is False:
                 annotationStart = True
                 annotationNumber += 1
                 annotation.append([])
-
             cv2.circle(imgCurrent, indexFingers, 5, (0,0,255), cv2.FILLED)
             annotation[annotationNumber].append(indexFingers)
-
         else:
             annotationStart = False
+
+        #Gesture #5 - Erase
+        if fingers == [0,1,1,1,0]:
+            if annotation:
+                annotation.pop(-1)
+                annotationNumber -= 1
+                buttonPressed = True
+                
 
     #Button press iteration
     if buttonPressed:
