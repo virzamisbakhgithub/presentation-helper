@@ -3,12 +3,9 @@ import cv2
 from cvzone.HandTrackingModule import HandDetector
 import numpy as np
 
-
-
 #Variables
 width, height = 1280, 720
 folderPath = ("slide")
-
 
 #Set the list images
 pathImages = sorted(os.listdir(folderPath), key=len)
